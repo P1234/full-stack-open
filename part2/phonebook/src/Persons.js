@@ -4,8 +4,8 @@ const Persons = (props) => {
   return (
     <div>
       {props.persons.map(person => 
-        <div key = {person.name}>
-          {person.name} {person.number}
+        <div key = {person.id}>
+          {person.name} {person.number} <button value={person.id} onClick={props.handleDelete}>delete</button>
         </div>
       )}
     </div>
