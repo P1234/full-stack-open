@@ -20,24 +20,25 @@ const App = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (checkDuplicate()) {
-      alert(`${newName} is already added to phonebook`)
-      personService.update(id, )
+    const index = checkDuplicateName();
+    if ( index >= 0) {
+      const newObject = {name: newName, number: newNumber, id: persons[index].id}
+      personService.update(persons[index].id, newObject);
+      setPersons(persons.map(person => person.id !== persons[index].id ? person : newObject))
     } else {
-      const newObject = {name: newName, number: newNumber, id: persons.length + 1}
+      const newObject = {name: newName, number: newNumber, id: persons.length + 1};
       personService.create(newObject)
       .then(res => {
-      setPersons([...persons, res])
-      setNewName("")
-      setNewNumber("")
+        setPersons([...persons, res]);
       })
     }
+    setNewName("");
+    setNewNumber("");
   }
 
   const handleDelete = (e) => {
     personService.deletePerson(e.target.value)
     setPersons(persons.filter(person => person.id !== parseInt(e.target.value)))
-
   }
 
   const handleNameChange = (e) => {
@@ -52,8 +53,8 @@ const App = () => {
     setSearch(e.target.value)
   }
 
-  const checkDuplicate = () => {
-    return (persons.map(person => person.name).indexOf(newName) >= 0)
+  const checkDuplicateName = () => {
+    return (persons.map(person => person.name).indexOf(newName))
   }
 
   return (
