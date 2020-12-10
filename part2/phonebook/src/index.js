@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom';
 import Persons from "./Persons"
 import PersonForm from "./PersonForm"
 import Filter from "./Filter"
+import Notification from "./Notification"
 import personService from "./services/persons"
+import './index.css'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName ] = useState("")
   const [newNumber, setNewNumber] = useState("")
   const [search, setSearch] = useState("")
+  const [message, setMessage] = useState(null)
 
   useEffect(() => {
     personService.getAll()
@@ -18,17 +21,32 @@ const App = () => {
 
   const personsToShow = persons.filter( person => person.name.toLowerCase().includes(search.toLowerCase()))
 
+  const handleSetMessage = (message, type) => {
+    setMessage(
+      {message: message, type: type}
+    )
+    setTimeout(() => {
+      setMessage(null)
+    }, 3000)
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const index = checkDuplicateName();
+
     if ( index >= 0) {
       const newObject = {name: newName, number: newNumber, id: persons[index].id}
-      personService.update(persons[index].id, newObject);
-      setPersons(persons.map(person => person.id !== persons[index].id ? person : newObject))
+      personService.update(persons[index].id, newObject)
+      .then((res) => {
+        handleSetMessage(`${res.name} updated`, "success");
+        setPersons(persons.map(person => person.id !== persons[index].id ? person : newObject))
+    })
+
     } else {
       const newObject = {name: newName, number: newNumber, id: persons.length + 1};
       personService.create(newObject)
       .then(res => {
+        handleSetMessage(`${res.name} created`, "success");
         setPersons([...persons, res]);
       })
     }
@@ -38,6 +56,9 @@ const App = () => {
 
   const handleDelete = (e) => {
     personService.deletePerson(e.target.value)
+    .catch(err => {
+      handleSetMessage("error", "error")
+    })
     setPersons(persons.filter(person => person.id !== parseInt(e.target.value)))
   }
 
@@ -59,7 +80,8 @@ const App = () => {
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h1>Phonebook</h1>
+        <Notification message={message}/>
         <Filter search={search} handleSearch={handleSearch}/>
       <h2>Add a new</h2>
         <PersonForm handlers = {{handleSubmit, handleNameChange, handleNumberChange}} values={{newName, newNumber}}/>
